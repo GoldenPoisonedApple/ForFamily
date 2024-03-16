@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" /><!-- 念には念のIE対策 あんまやらん方がいいらしい -->
+	<meta name="viewport" content="width=device-width, initial-scale=1"><!-- レスポンシブ対応 (多分)こいつのせいでスマホ表示がおかしくなったが付けないと怒られる -->
+	<title>誕生日おめでとう！</title>
+
+	<!-- CSS埋め込み -->
+	<style>
+		body {
+			margin: 0;
+			background: #020202;
+			cursor: crosshair;
+		}
+
+		/* 花火描画キャンバス */
+		canvas {
+			position: absolute;
+			margin: 0;
+			padding: 0;
+			top: 0;
+			left: 0%;
+			display: block;
+			z-index: 1;
+		}
+		
+		/* メインテキスト */
+		.content-text {
+			position: absolute;
+			width: 100%;
+			top: 15%;
+			left: 50%;
+			-webkit-transform: translate(-50%,0);
+			transform: translate(-50%,0);
+			z-index: 2;
+		}
+		.content-text h1 {
+			margin-bottom: 0;
+			text-align: center;
+			color: #fff;
+			font-family: "Source Sans Pro";
+			font-size: 5rem;
+			font-weight: 900;
+			-webkit-user-select: none;
+			user-select: none;
+			z-index: 2;
+		}
+		.content-text .birth-date {
+			margin-top: 0;
+			color: #fff;
+			font-family: "Source Sans Pro";
+			font-size: 8rem;
+			font-weight: 900;
+			-webkit-user-select: none;
+			user-select: none;
+			z-index: 2;
+		}
+		
+		/* オープニング画面 */
+		.opening{
+			position: relative;
+
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100vh;	/* 画面高さ */
+			background: #000000;
+			overflow: hidden;	/*ここより外側を全て隠す*/
+			z-index: 3;
+			/*アニメーション*/
+			-webkit-animation: opening-down 6.3s forwards;
+			animation: opening-down 6.3s forwards;
+		}
+		.count > p{
+			margin: 0;
+			padding: 0;
+
+			position: absolute;
+			/* 中央揃え */
+			top: 50%;
+			left: 50%;
+			-webkit-transform : translate(-50%,-50%);
+			transform : translate(-50%,-50%);
+			text-align: center;/*一応BOX内の文字も中央寄せ*/
+			/* 文字 */
+			color: #ffffff;
+			font-size: 200px;
+			font-weight: bold;
+			opacity:0;	/*不透明度*/
+			/* 重なり順を指定 */
+			z-index: 3;
+		}
+		/* オープニング画面アニメーション */
+		.count p:nth-child(1) {
+			-webkit-animation: count-down 2s 0s;
+			animation: count-down 2s 0s;
+		}
+		.count p:nth-child(2) {
+			-webkit-animation: count-down 2s 2s;
+			animation: count-down 2s 2s;
+		}
+		.count p:nth-child(3) {
+			-webkit-animation: count-down 2s 4s;
+			animation: count-down 2s 4s;
+		}
+		@keyframes count-down {
+			0%,100% {opacity:0;}
+			50% {opacity:1;}
+		}
+		@keyframes opening-down {
+			99% {
+				opacity: 1;
+				z-index: 3;	/* 重なり順変更は多少負荷があるらしい */
+			}
+			100% {
+				opacity: 0;
+				z-index: -1;
+			}
+		}
+
+		/* 吹き出し */
+		.balloon-parent {
+			width: 100%;
+			position: fixed;
+			bottom: 0;
+			display: flex;
+			justify-content: center;	/* 中央揃え */
+			z-index: 2;
+		}
+		.balloon {
+			position: relative;
+			display: inline-block;
+			margin: 0 1rem 1.5rem 1rem;
+			padding: 7px 10px;
+			min-width: 50px;
+			max-width: 100%;
+			color: #ffffff;
+			font-size: 1rem;
+			-webkit-user-select: none;
+			user-select: none;
+			background: #000000;
+			border: solid 3px #ffffff;
+			box-sizing: border-box;
+			border-radius: 15px;
+
+			-webkit-animation: feed-in 1s 0s;
+			animation: feed-in 1s 0s;
+		}
+		.balloon:before {
+			content: "";
+			position: absolute;
+			bottom: -24px;
+			left: 50%;
+			margin-left: -15px;
+			border: 12px solid transparent;
+			border-top: 12px solid #000000;
+			z-index: 3;
+		}
+		.balloon:after {
+			content: "";
+			position: absolute;
+			bottom: -30px;
+			left: 50%;
+			margin-left: -17px;
+			border: 14px solid transparent;
+			border-top: 14px solid #ffffff;
+		}
+		.balloon p {
+			margin: 0;
+			padding: 0;
+		}
+		@keyframes feed-in {
+			0% {opacity:0;}
+			100% {opacity:1;}
+		}
+		@keyframes feed-out {
+			0% {opacity:1;}
+			100% {opacity:0;}
+		}
+
+	</style>
+
+</head>
+
+<!-- 描画要素 気まぐれにより右クリックしても何も起こらなくした -->
+<body oncontextmenu="return false">
+	<!-- opening screen -->
+	<div class="opening">
+		<div class="count">
+				<p>3</p>
+				<p>2</p>
+				<p>1</p>
+		</div>
+
+	</div>
+
+	<!-- main content -->
+	<div class="content-text">
+		<h1 onclick="js_onclick()">Happy Birthday!</h1>
+		<h1 onclick="js_onclick()" class="birth-date">3/14</h1>
+	</div>
+
+	<!-- speech bubbles -->
+	<div class="balloon-parent" id="speech_bubbles">
+	</div>
+
+	<!-- firework canvas -->
+	<canvas id="birthday"></canvas>
+</body>
+
+
+<!-- 花火関係 -->
+<script>
+	'use strict';
+	// | ビット演算で小数点以下切り捨て整数値らしい
+
+	// 頻使用関数定義
+	const PI2 = Math.PI * 2;
+	const random = (min, max) => Math.random() * (max - min + 1) + min | 0;
+	const timestamp = _ => new Date().getTime();
+	const Ftype = Object.freeze({
+    nomal: 0,
+    petal: 1,
+    cracker: 2,
+	})
+
+	//コンテンツ取得
+	let canvas = document.getElementById('birthday');
+	let ctx = canvas.getContext('2d');
+
+	// 花火制御
+	class Birthday {
+		//花火関係
+		fireworks;	//花火格納
+		counter;		//花火出現
+		//画面関係
+		width;	//幅
+		center;	//幅中央
+		height;	//高さ
+		//クリックイベント反応判定 オープニング画面中に反応しないように
+		is_start;
+
+		constructor() {
+			this.resize();
+
+			//花火
+			this.fireworks = [];
+			this.counter = 0;
+			//スタート
+			this.is_start = false;
+		}
+
+		//画面サイズ設定
+		resize() {
+			this.width = canvas.width = window.innerWidth;
+
+			let center = this.width / 2 | 0;
+			this.spawnA = center - center / 4 | 0;
+			this.spawnB = center + center / 4 | 0;
+
+			//height と canvas.height に window.innerHeightを代入
+			this.height = canvas.height = window.innerHeight;
+			this.spawnC = this.height * 0.1;
+			this.spawnD = this.height * 0.5;
+		}
+
+		//最初のフレーム 最初の花火生成
+		first () {
+			for (let i=0; i<3; i++) {
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.5, this.height*0.1,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.4, this.height*0.12,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.6, this.height*0.12,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+			
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.3, this.height*0.2,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.7, this.height*0.2,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+			
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.2, this.height*0.35,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB), 0,
+								this.width*0.8, this.height*0.35,
+								random(0, 260),random(30, 110),Ftype.nomal
+						)
+				);
+			}
+			//クリックイベント反応
+			this.is_start = true;
+			//しばらく自然生成花火待機
+			this.counter = -30;
+		}
+
+		//クリック時
+		onClick(evt) {
+			if (!this.is_start) return;
+
+			//ブラウザウィンドウ内でのカーソル座標を取得 左上が(0, 0)
+			//タップの場合右側が適用される
+			let x = evt.clientX || evt.touches && evt.touches[0].pageX;
+			let y = evt.clientY || evt.touches && evt.touches[0].pageY;
+
+			//3～5個花火生成
+			let count = random(3, 5);
+			for (let i = 0; i < count; i++) {
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB),
+								this.height,
+								x,
+								y,
+								random(0, 260),
+								random(30, 110),
+								Ftype.nomal
+						)
+				);
+			}
+			this.counter = -1;
+		}
+
+		//毎フレーム呼び出し delta:経過時間
+		update(delta) {
+			//合成方法指定 
+			ctx.globalCompositeOperation = 'hard-light';
+			//描画する図形の内部色 時間が空けばあくほど透明度は低くなる
+			//canvasの色を常に半透明の黒で上書き
+			//これによりモーションブラー的なものを再現
+			ctx.fillStyle = `rgba(20,20,20,${7 * delta})`;
+			ctx.fillRect(0, 0, this.width, this.height);
+
+			//合成方法指定 光の色が混ざる感じのやつ
+			ctx.globalCompositeOperation = 'lighter';
+			//花火描画
+			for (let firework of this.fireworks) {
+				firework.update(delta);
+			}
+
+			//毎秒花火自然生成
+			//毎秒3発にした
+			this.counter += delta * 3;
+			if (this.counter >= 1) {
+				//タイプ設定
+				let type;
+				if (random(0, 100) > 5)
+					type = Ftype.nomal;
+				else
+					type = Ftype.cracker;
+				//花火生成
+				this.fireworks.push(new Firework(
+								random(this.spawnA, this.spawnB),
+								this.height,
+								random(0, this.width),
+								random(this.spawnC, this.spawnD),
+								random(0, 360),
+								random(30, 110),
+								type
+						)
+				);
+				this.counter = 0;
+			}
+
+			// 死んだ花火消す あんまり頻繁にやってもあれなので500
+			if (this.fireworks.length > 500) {
+				//filter 指定された条件を満たす要素だけを取り出して新しい配列を生成
+				this.fireworks = this.fireworks.filter(firework => !firework.dead)
+			}
+
+		}
+	}
+
+	// 花火
+	class Firework {
+		dead;	//死亡判定
+		x;y;	//位置
+		targetX;
+		targetY;	//目標位置
+		shade;
+		offsprings;	//花火の花弁数
+		babies;	//花弁
+		history;	//20まで 描画
+		//花火タイプ
+		type;	
+
+		constructor(x, y, targetX, targetY, shade, offsprings, type) {
+			this.dead = false;
+			this.offsprings = offsprings;
+			this.type = type;
+
+			this.x = x;
+			this.y = y;
+			this.targetX = targetX;
+			this.targetY = targetY;
+
+			this.shade = shade;
+			this.history = [];
+		}
+
+
+		update(delta) {
+			if (this.dead) return;
+
+			let xDiff = this.targetX - this.x;
+			let yDiff = this.targetY - this.y;
+ 			// 移動中
+			if (
+					(this.type != Ftype.cracker && (Math.abs(xDiff) > 3 || Math.abs(yDiff) > 3))	//クラッカー以外の移動
+			||	(this.type == Ftype.cracker && (Math.abs(xDiff) > 40 || Math.abs(yDiff) > 40))	//クラッカーの移動
+					) {
+				//0.5秒ぐらいで目標に着く感じ
+				this.x += xDiff * 2 * delta;
+				this.y += yDiff * 2 * delta;
+
+				this.history.push({
+					x: this.x,
+					y: this.y
+				});
+
+				if (this.history.length > 20) this.history.shift(); //配列の最初の要素削除
+
+			} else {																				//止まりそう
+				if (this.type != Ftype.petal && !this.madeChilds) {	//花弁生成前
+					//ノーマル花火
+					if (this.type == Ftype.nomal) {
+						let babies = this.offsprings / 2;
+						for (let i = 0; i < babies; i++) {
+							//数に応じて半径設定
+							let targetX = this.x + this.offsprings * Math.cos(PI2 * i / babies) | 0;
+							let targetY = this.y + this.offsprings * Math.sin(PI2 * i / babies) | 0;
+							//花弁生成
+							birthday.fireworks.push(new Firework(this.x, this.y, targetX, targetY, this.shade, 0, Ftype.petal));
+						}
+
+					}
+					//クラッカー
+					else if (this.type == Ftype.cracker) {
+						//角度計算
+						let angle = Math.atan(yDiff / xDiff);
+						if (angle > 0) angle -= Math.PI;	//多分arctanの値域の問題
+
+						let babies = this.offsprings / 8;
+						for (let i = -babies/2; i < babies/2; i++) {
+							//数に応じて半径設定
+							let targetX = this.x + this.offsprings * Math.cos(angle + (PI2/6) * i / babies) | 0;
+							let targetY = this.y + this.offsprings * Math.sin(angle + (PI2/6) * i / babies) | 0;
+							//花弁生成
+							birthday.fireworks.push(new Firework(this.x, this.y, targetX, targetY, this.shade, 0, Ftype.petal));
+						}
+					}
+
+				}
+				this.madeChilds = true;
+				this.history.shift();
+			}
+
+			//死亡判定
+			if (this.history.length === 0) this.dead = true;
+			//死亡してない場合
+			else if (this.type != Ftype.petal) {	//花弁以外
+				//軌道見やすくって事かな
+				for (let i = 0; this.history.length > i; i++) {
+					let point = this.history[i];
+					ctx.beginPath();	//下準備的な
+					ctx.fillStyle = 'hsl(' + this.shade + ',100%,' + i + '%)';
+					ctx.arc(point.x, point.y, 1, 0, PI2, false);
+					ctx.fill();
+				}
+			} else {										//花弁
+				ctx.beginPath();
+				//hsl 色相, 彩度, 輝度
+				ctx.fillStyle = 'hsl(' + this.shade + ',100%,50%)';
+				//円描画
+				ctx.arc(this.x, this.y, 1, 0, PI2, false);
+				ctx.fill();
+			}
+
+		}
+	}
+
+
+
+
+	//初回タイムスタンプ取得
+	let then = timestamp();
+	let isFirstFrame = true; // 最初のアニメーションフレームかどうかを判定する変数
+
+	//インスタンス生成
+	let birthday = new Birthday();
+	window.onresize = () => birthday.resize();
+
+	//クリックリスナー追加
+	document.onclick = evt => birthday.onClick(evt);
+	//どうせだからタップも対応
+	document.ontouchstart = evt => birthday.onClick(evt);
+
+	// 6秒後に実行
+	setTimeout(() => {
+		(function loop() {
+			// フレームごとに関数loopを呼び出す
+			requestAnimationFrame(loop);
+
+			// タイムスタンプ取得、経過時間計算
+			let now = timestamp();
+			let delta = now - then;
+
+			then = now;
+
+			if (isFirstFrame) {
+				// 初回フレームの場合の処理
+				birthday.first();
+				isFirstFrame = false; // 初回フレームのフラグをfalseに設定
+			}
+			// 呼び出し(秒)
+			birthday.update(delta / 1000);
+		})();
+	}, 6300); // 6秒後に実行
+</script>
+
+<!-- 吹き出し関係 -->
+<script>
+	const MAX_COUNT = 5;
+	//吹き出しの数
+	let speech_bubble_count = 0;
+	const speech_bubble_text = [
+		'ｵﾒﾃﾞﾄｰ',
+		'誕生日おめでとー',
+		'おめでとう！',
+		'おめでございます',
+		'おめでと！',
+		'めでたいねぇ...',
+		'めでたすぎる.....!',
+		'めっちゃめでたい(語彙力)',
+		'めでたすぎるって....',
+		'おめでとう！',
+		'あなた誕生日ですよ！今日！',
+		'おめでと！！！！！！',
+		'(謎の技術力)',
+		'レポートで培ったHTMLをとくと見よ!',
+		'Happy Birthday!',
+		'おめでとうございます！',
+		'これはオフラインなので心配なさらず',
+		'作ってたら楽しくなってきちゃった',
+		'ナタデココ食べたい',
+		'改行できなくてAA貼れなかった',
+		'ここのクリックよく気づいたね',
+		'github conpilot神だから使え',
+		'べ、べつに忘れてたわけじゃないよ...',
+	];
+
+	//エレメント取得
+	let speech_bubbles_parent = document.getElementById('speech_bubbles');
+
+	//クリック時呼び出し
+	function js_onclick() {
+		if (speech_bubble_count < MAX_COUNT) {
+			speech_bubble_count++;
+			// 要素作成
+			var balloonDiv = document.createElement("div");
+			balloonDiv.classList.add("balloon");
+			var pElement = document.createElement("p");
+			pElement.textContent = speech_bubble_text[random(0, speech_bubble_text.length-1)];
+			balloonDiv.appendChild(pElement);
+
+			// 要素内の最後に追加
+			speech_bubbles_parent.appendChild(balloonDiv);
+
+			//一定時間で削除
+			setTimeout(function() {
+				balloonDiv.style.animation = "feed-out 1s 0s"; 
+			}, 6000);
+			setTimeout(function() { 
+				balloonDiv.remove();
+				speech_bubble_count--;
+			}, 7000);
+		}
+	}
+</script>
+
+</html>
